@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Gmail Canvas Dark \u2014 Unofficial Audit",
+  "version": "1.0.6",
+  "description": "Unofficial local audit fork of Gmail Canvas Dark; not affiliated with Lobbyx3.",
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://mail.google.com/*"
+      ],
+      "css": [
+        "content/theme.css"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://mail.google.com/*"
+      ],
+      "js": [
+        "content/theme.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "gmail-canvas-dark-audit@tidley.invalid",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    }
+  }
+}

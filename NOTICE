@@ -1,0 +1,10 @@
+Unofficial local audit fork of Gmail Canvas Dark 1.0.4, attributed in supplied
+materials to Lobbyx3. Not affiliated with or endorsed by the original developer.
+Original notices and assets are preserved. Modifications in extension/ are not
+claimed as Lobbyx3's work. See docs/audit.md for provenance and precise changes.
+
+Both supplied LICENSE files contain the MIT notice reproduced in LICENSE.
+Task-supplied AMO metadata and the supplied fork README instead state MPL-2.0.
+This conflict is unresolved; no legal provenance or dual licensing is asserted.
+Clarify with the rightsholder before publication. Original Mozilla signatures
+apply only to the immutable original XPI, never to this fork.

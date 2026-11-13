@@ -1,0 +1,46 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Synthetic Gmail Canvas Dark fixture — no private mail</title>
+<style>
+  body { margin: 0; background: #252525; color: #eee; font: 16px sans-serif; }
+  [role=banner] { height: 80px; background: #343434; }
+  nav { position: absolute; width: 180px; background: #393939; }
+  main { margin-left: 200px; width: 800px; background: white; color: black; }
+  table { width: 100%; border: 1px solid white; background: white; color: black; }
+  td { padding: 6px; }
+</style>
+<header role="banner">Synthetic native banner must remain unchanged</header>
+<nav role="navigation"><button gh="cm">Compose</button>Native theme sidebar</nav>
+<main role="main">
+  <h1>Synthetic newsletter</h1>
+  <div class="a3s" id="message" style="background:white!important;color:black!important">
+    <table><tr><td><table><tr><td>Nested neutral surface
+      <a href="#synthetic">Synthetic link</a>
+      <img alt="synthetic logo" width="60" height="30" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='30'%3E%3Crect width='60' height='30' fill='orange'/%3E%3C/svg%3E">
+    </td></tr></table></td></tr></table>
+    <div style="background:rgb(180,20,20);color:white">Saturated surface</div>
+    <div style="background-image:linear-gradient(90deg,orange,blue);color:white">Background image/gradient</div>
+  </div>
+  <div role="dialog" aria-label="chat" style="background:white;color:black">Synthetic chat dialog</div>
+  <div role="menu" style="background:white;color:black"><div role="menuitem">Synthetic popup</div></div>
+</main>
+<script>
+// Choose ?version=original, supplied, candidate (default), or css-only.
+const version = new URLSearchParams(location.search).get('version') || 'candidate';
+const paths = { original: '../../reference/original-1.0.4', supplied: '../../reference/supplied-1.0.5-xpi', candidate: '../../extension', 'css-only': '../../extension' };
+if (!Object.hasOwn(paths, version)) throw Error('unknown fixture version');
+const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = paths[version] + '/content/theme.css'; document.head.append(css);
+if (version !== 'css-only') { const script = document.createElement('script'); script.src = paths[version] + '/content/theme.js'; document.body.append(script); }
+// Mutation waves exercise an existing message and style/class-only changes.
+setTimeout(() => {
+  const message = document.getElementById('message');
+  for (let i = 0; i < 300; i++) {
+    const table = document.createElement('table');
+    table.innerHTML = '<tr><td style="background:white!important;color:black!important">Synthetic row ' + i + '</td></tr>';
+    message.append(table);
+  }
+}, 2000);
+setTimeout(() => {
+  const cell = document.querySelector('td'); cell.style.setProperty('background-color', 'white', 'important'); cell.classList.toggle('synthetic-update');
+}, 3000);
+</script>

@@ -1,0 +1,128 @@
+--- reference/original-1.0.4/manifest.json
++++ extension/manifest.json
+@@ -3,3 +3,3 @@
+-  "name": "Gmail Canvas Dark",
+-  "version": "1.0.4",
+-  "description": "Darkens Gmail message, settings and chat surfaces while leaving your Gmail theme/background image untouched.",
++  "name": "Gmail Canvas Dark \u2014 Unofficial Audit",
++  "version": "1.0.6",
++  "description": "Unofficial local audit fork of Gmail Canvas Dark; not affiliated with Lobbyx3.",
+@@ -17,0 +18,7 @@
++      "run_at": "document_start",
++      "all_frames": true
++    },
++    {
++      "matches": [
++        "https://mail.google.com/*"
++      ],
+@@ -27 +34 @@
+-      "id": "{66152c13-1c07-4f37-b651-d7948fd9a5e0}",
++      "id": "gmail-canvas-dark-audit@tidley.invalid",
+@@ -36 +43 @@
+-}
+\ No newline at end of file
++}
+--- reference/original-1.0.4/content/theme.js
++++ extension/content/theme.js
+@@ -54,0 +55 @@
++  const MAX_PENDING_ROOTS = 24;
+@@ -55,0 +57 @@
++  const ownedStyleAttributes = new WeakMap();
+@@ -186,0 +189,10 @@
++    const previous = originalInlineStyles.get(element)?.get(property);
++    if (previous && previous.desiredValue === value &&
++        element.style.getPropertyValue(property) === previous.appliedValue &&
++        element.style.getPropertyPriority(property) === "important") return;
++    if (element.style.getPropertyValue(property) === value &&
++        element.style.getPropertyPriority(property) === "important") return;
++    if (previous && (element.style.getPropertyValue(property) !== previous.appliedValue ||
++        element.style.getPropertyPriority(property) !== "important")) {
++      originalInlineStyles.get(element).delete(property);
++    }
+@@ -188,0 +201,3 @@
++    originalInlineStyles.get(element).get(property).appliedValue = element.style.getPropertyValue(property);
++    originalInlineStyles.get(element).get(property).desiredValue = value;
++    ownedStyleAttributes.set(element, element.getAttribute("style"));
+@@ -195,0 +211,3 @@
++      // Gmail may have replaced this property since our last write.
++      if (element.style.getPropertyValue(property) !== original.appliedValue ||
++          element.style.getPropertyPriority(property) !== "important") continue;
+@@ -202,0 +221 @@
++    ownedStyleAttributes.set(element, element.getAttribute("style"));
+@@ -214,0 +234,5 @@
++    // Recompute, rather than treating protection as permanent across SPA views.
++    if (scope instanceof Element) delete scope.dataset.gcdPreserveTheme;
++    scope.querySelectorAll('[data-gcd-preserve-theme="1"]').forEach((element) => {
++      delete element.dataset.gcdPreserveTheme;
++    });
+@@ -501 +525,13 @@
+-    scheduledRoots.add(root);
++    if (root instanceof Element && !root.isConnected) return;
++    if (root === document) {
++      scheduledRoots.clear();
++      scheduledRoots.add(document);
++    } else if (!scheduledRoots.has(document)) {
++      for (const pending of scheduledRoots) if (pending.contains(root)) return;
++      for (const pending of scheduledRoots) if (root.contains(pending)) scheduledRoots.delete(pending);
++      scheduledRoots.add(root);
++      if (scheduledRoots.size > MAX_PENDING_ROOTS) {
++        scheduledRoots.clear();
++        scheduledRoots.add(document);
++      }
++    }
+@@ -508 +544,3 @@
+-      roots.forEach(discoverAndProcess);
++      for (const pending of roots) {
++        if (pending === document || pending.isConnected) discoverAndProcess(pending);
++      }
+@@ -509,0 +548,15 @@
++  }
++
++  function queueContext(element) {
++    if (!(element instanceof Element)) return;
++    // Recompute from outside every enclosing preservation marker. A semantic
++    // root inside a preserved wrapper cannot clear that wrapper on SPA reuse.
++    let outermostPreserved = null;
++    for (let ancestor = element; ancestor; ancestor = ancestor.parentElement) {
++      if (ancestor.dataset.gcdPreserveTheme === "1") outermostPreserved = ancestor;
++    }
++    const start = outermostPreserved ? outermostPreserved.parentElement : element;
++    // A nested insertion must revisit the existing message with aggressive
++    // scanning, even when a nearer semantic root occurs inside the message.
++    const context = start && (start.closest(MESSAGE_BODY_SELECTOR) || start.closest(SEMANTIC_ROOT_SELECTOR));
++    queue(context || document);
+@@ -514,4 +567,7 @@
+-      if (mutation.type !== "childList") continue;
+-      mutation.addedNodes.forEach((node) => {
+-        if (node instanceof Element) queue(node);
+-      });
++      if (mutation.type === "attributes") {
++        if (mutation.attributeName === "style" && ownedStyleAttributes.has(mutation.target) &&
++            ownedStyleAttributes.get(mutation.target) === mutation.target.getAttribute("style")) continue;
++        queueContext(mutation.target);
++      } else if (mutation.type === "childList") {
++        queueContext(mutation.target);
++      }
+@@ -521,2 +577,7 @@
+-  observer.observe(document.documentElement, { childList: true, subtree: true });
+-
++  observer.observe(document.documentElement, {
++    childList: true, subtree: true, attributes: true,
++    attributeFilter: ["class", "style", "hidden", "role", "aria-modal", "aria-label", "gh"]
++  });
++
++  // Retain the reference's interaction fallback: pseudo-class and stylesheet
++  // changes need not produce observable DOM attribute mutations.
+@@ -537 +598,2 @@
+-    // Gmail assembles views in several asynchronous waves.
++    // Preserve reference coverage for late stylesheet/visibility changes that
++    // are not observable DOM insertions. No repeating interval/polling.
+--- /dev/null
++++ extension/NOTICE
+@@ -0,0 +1,6 @@
++Unofficial audit fork of Gmail Canvas Dark 1.0.4, attributed in supplied materials
++to Lobbyx3. Not affiliated with or endorsed by the original developer.
++Our modifications are not Lobbyx3's work. Original MIT notice is in LICENSE.
++AMO metadata and supplied fork README instead state MPL-2.0; this conflict is
++unresolved. No legal resolution or dual licensing is asserted. Clarify provenance
++before publication. Original Mozilla signatures do not apply to this fork.

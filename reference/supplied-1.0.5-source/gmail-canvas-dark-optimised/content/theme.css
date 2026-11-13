@@ -1,0 +1,68 @@
+/* Gmail Canvas Dark 1.0.4
+ * Do not style html/body: Gmail theme/background images remain untouched.
+ * JS applies final neutral colour fixes as inline !important because many HTML
+ * emails themselves ship inline !important light-mode colours.
+ */
+
+:root {
+  --gcd-bg-0: #15171a;
+  --gcd-bg-1: #1b1d21;
+  --gcd-bg-2: #202328;
+  --gcd-bg-hover: #292d33;
+  --gcd-border: #3c4047;
+  --gcd-text: #e7e9ec;
+  --gcd-text-muted: #bdc1c7;
+  --gcd-link: #8ab4f8;
+  --gcd-input: #25282d;
+}
+
+[data-gcd-canvas-root="1"],
+[data-gcd-forced-surface="1"],
+[data-gcd-popup-root="1"],
+[data-gcd-compose="1"] {
+  color-scheme: dark !important;
+}
+
+/* Links need a stable readable accent on converted dark surfaces. */
+[data-gcd-canvas-root="1"] a,
+[data-gcd-forced-surface="1"] a,
+[data-gcd-popup-root="1"] a {
+  color: var(--gcd-link) !important;
+}
+
+/* Keep embedded images/media exactly as sent. */
+:is([data-gcd-canvas-root="1"], [data-gcd-forced-surface="1"]) :is(img, video, canvas, picture) {
+  filter: none !important;
+}
+
+/* Native controls that inherit a dark surface. */
+:is([data-gcd-canvas-root="1"], [data-gcd-forced-surface="1"], [data-gcd-popup-root="1"]) :is(input, textarea, select) {
+  color-scheme: dark !important;
+}
+
+/* Small Gmail popup menus/listboxes are not large enough for the generic
+ * canvas detector, so JS marks them explicitly. */
+[data-gcd-popup-root="1"] :is([role="menuitem"], [role="option"]):hover {
+  background-color: var(--gcd-bg-hover) !important;
+}
+
+/* The Compose button lives inside the protected left navigation. It is the
+ * one intentional control-level exception: darken it without touching the
+ * navigation/theme image around it. */
+[data-gcd-compose="1"] {
+  background-color: var(--gcd-bg-2) !important;
+  background-image: none !important;
+  color: var(--gcd-text) !important;
+  border-color: var(--gcd-border) !important;
+  box-shadow: none !important;
+}
+
+[data-gcd-compose="1"]:hover,
+[data-gcd-compose="1"]:focus-visible {
+  background-color: var(--gcd-bg-hover) !important;
+}
+
+:is([data-gcd-canvas-root="1"], [data-gcd-forced-surface="1"], [data-gcd-popup-root="1"], [data-gcd-compose="1"]) ::selection {
+  background: #3f5f91 !important;
+  color: #fff !important;
+}

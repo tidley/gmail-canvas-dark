@@ -1,0 +1,12 @@
+{
+  "name": "gmail-canvas-dark-audit",
+  "private": true,
+  "version": "1.0.6",
+  "description": "Local unofficial audit candidate; licensing discrepancy documented in NOTICE",
+  "scripts": {
+    "test": "node --test",
+    "package:check": "python3 scripts/package.py --check",
+    "benchmark": "node benchmarks/compare.cjs"
+  },
+  "engines": { "node": ">=24" }
+}

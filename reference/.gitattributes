@@ -1,0 +1,4 @@
+# Preserve the exact signed archive members, including their terminal blank lines.
+original-1.0.4/META-INF/cose.manifest whitespace=-blank-at-eof
+original-1.0.4/META-INF/manifest.mf whitespace=-blank-at-eof
+original-1.0.4/META-INF/mozilla.sf whitespace=-blank-at-eof

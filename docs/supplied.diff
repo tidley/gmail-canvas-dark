@@ -1,0 +1,96 @@
+--- reference/original-1.0.4/manifest.json
++++ reference/supplied-1.0.5-xpi/manifest.json
+@@ -3,3 +3,3 @@
+-  "name": "Gmail Canvas Dark",
+-  "version": "1.0.4",
+-  "description": "Darkens Gmail message, settings and chat surfaces while leaving your Gmail theme/background image untouched.",
++  "name": "Gmail Canvas Dark (Optimised)",
++  "version": "1.0.5",
++  "description": "Community performance-optimised fork of Gmail Canvas Dark 1.0.4.",
+@@ -27 +27 @@
+-      "id": "{66152c13-1c07-4f37-b651-d7948fd9a5e0}",
++      "id": "gmail-canvas-dark-optimised@example.invalid",
+@@ -36 +36 @@
+-}
+\ No newline at end of file
++}
+--- reference/original-1.0.4/content/theme.js
++++ reference/supplied-1.0.5-xpi/content/theme.js
+@@ -54,0 +55,2 @@
++  // Avoid retaining detached Gmail nodes between mutation and animation frames.
++  const MAX_PENDING_ROOTS = 24;
+@@ -501 +503,23 @@
+-    scheduledRoots.add(root);
++    if (root instanceof Element && !root.isConnected) return;
++
++    // A document rescan supersedes all queued descendant scans.
++    if (root === document) {
++      scheduledRoots.clear();
++      scheduledRoots.add(document);
++    } else if (!scheduledRoots.has(document)) {
++      // If an ancestor is already queued, this node is redundant.
++      for (const pending of scheduledRoots) {
++        if (pending.contains(root)) return;
++      }
++      // If this node encloses pending nodes, retain only the ancestor.
++      for (const pending of scheduledRoots) {
++        if (root.contains(pending)) scheduledRoots.delete(pending);
++      }
++      scheduledRoots.add(root);
++      // Bound queue growth for huge newsletters / rapid Gmail updates.
++      if (scheduledRoots.size > MAX_PENDING_ROOTS) {
++        scheduledRoots.clear();
++        scheduledRoots.add(document);
++      }
++    }
++
+@@ -508 +532,3 @@
+-      roots.forEach(discoverAndProcess);
++      for (const pending of roots) {
++        if (pending === document || pending.isConnected) discoverAndProcess(pending);
++      }
+@@ -523,11 +549,2 @@
+-  document.addEventListener("click", () => {
+-    setTimeout(() => queue(document), 0);
+-    setTimeout(() => queue(document), 80);
+-  }, true);
+-
+-  document.addEventListener("keydown", (event) => {
+-    if (["Enter", " ", "ArrowDown", "ArrowUp"].includes(event.key)) {
+-      setTimeout(() => queue(document), 0);
+-      setTimeout(() => queue(document), 80);
+-    }
+-  }, true);
++  // MutationObserver handles inserted Gmail content. Avoid two whole-document
++  // rescans on every click/key press, which caused substantial redundant work.
+@@ -538,3 +555 @@
+-    setTimeout(() => queue(document), 120);
+-    setTimeout(() => queue(document), 500);
+-    setTimeout(() => queue(document), 1300);
++    setTimeout(() => queue(document), 300);
+--- /dev/null
++++ reference/supplied-1.0.5-xpi/README.md
+@@ -0,0 +1,23 @@
++# Gmail Canvas Dark (Optimised)
++
++Unofficial performance fork of Gmail Canvas Dark 1.0.4 by Lobbyx3. Licensed under MPL-2.0; see LICENSE. Not affiliated with the original developer.
++
++## Changes
++- Deduplicate queued DOM mutation roots by ancestor containment.
++- Bound pending roots to 24, falling back to one document scan.
++- Skip detached DOM elements before processing.
++- Remove two full-document rescans on every click and navigation key press.
++- Reduce initial delayed rescans from three to one; retain MutationObserver and route-change handling.
++
++## Testing
++These are static improvements, not a browser-validated fix. Test message opening, inbox navigation, compose, settings, menus, and chat. Some Gmail interactions that change only CSS classes or inline styles without adding DOM nodes may require a page reload, because click-triggered rescans were removed.
++
++## Firefox temporary installation
++1. Open `about:debugging#/runtime/this-firefox`.
++2. Click **Load Temporary Add-on** and select `manifest.json` from the extracted folder (or select the unsigned `.xpi`).
++3. Disable the original extension first to avoid conflicting styles.
++
++Temporary add-ons disappear when Firefox restarts. The `.xpi` is **unsigned** and cannot be installed permanently in standard Firefox without Mozilla signing. For publication, submit a new add-on for signing; do not reuse the original developer's extension ID.
++
++## Development
++Inspect and edit `content/theme.js` and `content/theme.css`. Keep the MPL-2.0 licence and original attribution.
